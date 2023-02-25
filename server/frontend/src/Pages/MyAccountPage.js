@@ -1,10 +1,36 @@
 import React from 'react'
+import { useState, useEffect } from 'react'
 import { Row, Col, Nav, Tab, Card, Form, Button } from 'react-bootstrap'
 import TopNav from '../Components/TopNav'
 import PostCards from '../Components/PostCards'
 
 function MyAccountPage () {
-  const userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+  // fetch user info from backend
+  const [userInfo, setUserInfo] = useState(null)
+  useEffect(() => {
+    fetch('http://localhost:8080/my-account', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        if (response.status === 400) {
+          window.location.href = '/bad-request'
+        } else if (response.status === 500) {
+          window.location.href = '/internal-server-error'
+        }
+        return response.json()
+      })
+      .then(data => {
+        setUserInfo(data)
+      })
+      .catch(error => {
+        // Handle any errors
+        console.error(error)
+      })
+  }, [userInfo])
 
   return userInfo ? (
     <Row>

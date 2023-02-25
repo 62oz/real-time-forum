@@ -101,5 +101,24 @@ func GetDB(database string) *sql.DB {
 		fmt.Println("Error initialising categories.")
 		log.Fatal(err)
 	}
+
+	// MESSAGES FEATURE
+
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS Messages (
+		ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+		SenderID INTEGER NOT NULL,
+		ReceiverID INTEGER NOT NULL,
+		Content TEXT NOT NULL,
+		Date TEXT NOT NULL,
+		FOREIGN KEY(SenderID) REFERENCES Users(ID) ON DELETE CASCADE,
+		FOREIGN KEY(ReceiverID) REFERENCES Users(ID) ON DELETE CASCADE
+	);
+`)
+
+	if err != nil {
+		fmt.Println("Error creating messages table.")
+		log.Fatal(err)
+	}
 	return db
 }

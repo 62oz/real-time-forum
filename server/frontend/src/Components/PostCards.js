@@ -185,7 +185,7 @@ const PostCards = props => {
                 <div
                   className='d-flex justify-content-end'
                   type='button'
-                  onClick={() => getArticle(item.id)}
+                  onClick={() => getArticle(item.id, isLoggedIn)}
                 >
                   <p className='fw-bold'>
                     {' '}
@@ -219,7 +219,11 @@ function getN (i) {
   }
 }
 
-function getArticle (id) {
+function getArticle (id, isLoggedIn) {
   console.log('getArticle')
-  window.location.href = '/articles/' + id
+  if (isLoggedIn) {
+    window.location.href = '/articles/' + id
+  } else {
+    alert('Login to read articles.')
+  }
 }

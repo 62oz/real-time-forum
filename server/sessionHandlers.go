@@ -24,30 +24,10 @@ type Session struct {
 func CheckSession(w http.ResponseWriter, r *http.Request) {
 
 	var sessionID uuid.UUID
-	var temp Session
 
-	// Getting session info from client
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	switch r.Method {
-	case "OPTIONS":
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		return
-	}
-	if r.Method == "POST" {
-		err := json.NewDecoder(r.Body).Decode(&temp)
-		if err != nil {
-			fmt.Println("Problem with getting existing session")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		sessionID, err = uuid.FromString(temp.SessionIDstr)
-		if err != nil {
-			log.Printf("Error converting session ID to UUID: %v", err)
-			http.Error(w, "Invalid session ID", http.StatusBadRequest)
-			return
-		}
-
+	cookie, err := r.Cookie("sessionID")
+	if err == nil {
+		sessionID, err = uuid.FromString(cookie.Value)
 	}
 
 	sesh := d.GetSession(Database, sessionID)
@@ -55,8 +35,17 @@ func CheckSession(w http.ResponseWriter, r *http.Request) {
 	var a ActiveSession
 	a.Status = "failed"
 
-	//Check if session not empty (i.e. it was found in the DB)
-	if sesh != (u.Session{}) {
+	tx, err := Database.Begin()
+	if err != nil {
+		fmt.Println("Error starting transactionin check session")
+		log.Fatal(err)
+	}
+
+	if sesh != (u.Session{}) && !d.IsExpired(Database, sesh) {
+
+		// Update session expiration time in database
+		d.UpdateSessionTime2(tx, sesh)
+
 		//Send success and update cookie expiration time
 		expiration := time.Now().Add(time.Minute * 20)
 
@@ -117,6 +106,15 @@ func CheckSession(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		a.ActiveUser.CommmentedPosts = cmp
+	} else {
+		deleteCookie(w, "sessionID")
+	}
+
+	if d.IsExpired(Database, sesh) {
+		fmt.Println("Session expired")
+		d.DeleteSession(tx, sesh.UUID)
+		// delete cookie
+		deleteCookie(w, "sessionID")
 	}
 
 	b, err := json.Marshal(a)
@@ -125,10 +123,11 @@ func CheckSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
 	w.Write(b)
+
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println("Error committing transaction in check session")
+		log.Fatal(err)
+	}
 }

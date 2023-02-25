@@ -11,6 +11,9 @@ type User struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
 	Mobile          string `json:"mobile"`
+	Age             string `json:"age"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
 	Logout          bool   `json:"logout"`
 	ReactedPosts    []Post `json:"reactedPosts"`
 	CommmentedPosts []Post `json:"commentedPosts"`
@@ -86,45 +89,12 @@ type Session struct {
 	ExpDate int64
 }
 
-/* // Cooookieeeees :P
-type Cookie struct {
-	Name    string
-	Value   string
-	Expires time.Time
-	// MaxAge=0 means no 'Max-Age' attribute specified.
-	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-	// MaxAge>0 means Max-Age attribute present and given in seconds
-	MaxAge   int
-	Secure   bool
-	HttpOnly bool
-	//SameSite SameSite
-	Raw      string
-	Unparsed []string
+// Messages :P
+
+type Message struct {
+	ID         int    `json:"id"`
+	Content    string `json:"message"`
+	SenderID   int    `json:"senderId"`
+	ReceiverID int    `json:"receiverId"`
+	Date       int64  `json:"date"`
 }
-
-//Trying out cookies stuff
-
-var client http.Client
-
-func init() {
-	jar, err := cookiejar.New(nil)
-	CheckErr(err)
-	client = http.Client{
-		Jar: jar,
-	}
-}
-
-func Cookies() {
-	cookie := &http.Cookie{
-		Name:   "token",
-		Value:  "some_token",
-		MaxAge: 300,
-	}
-	req, err := http.NewRequest("GET", "ifjeifjiwej.com", nil)
-	CheckErr(err)
-	req.AddCookie(cookie)
-	resp, err := client.Do(req)
-	CheckErr(err)
-	defer resp.Body.Close()
-}
-*/

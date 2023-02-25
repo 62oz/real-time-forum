@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Container, Navbar, Button, Nav } from 'react-bootstrap'
 
-
 const BlogHeaderLogo = {
   fontFamily: 'Playfair Display, Georgia, Times New Roman, serif',
   fontSize: '1.25rem',

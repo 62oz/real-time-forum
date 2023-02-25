@@ -39,11 +39,13 @@ function Signup () {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mobileNumber, setMobileNumber] = useState('')
+  const [age, setAge] = useState(0)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [message, setMessage] = useState('')
   const navigate = useNavigate()
 
   let handleSignup = async e => {
-    console.log('ok')
     e.preventDefault()
     try {
       let res = await fetch('http://localhost:8080/signup', {
@@ -55,7 +57,10 @@ function Signup () {
           username: username,
           email: email,
           password: password,
-          mobile: mobileNumber
+          mobile: mobileNumber,
+          age: age,
+          firstName: firstName,
+          lastName: lastName
         })
       })
 
@@ -66,6 +71,9 @@ function Signup () {
         setEmail('')
         setMobileNumber('')
         setPassword('')
+        setAge(0)
+        setFirstName('')
+        setLastName('')
         setMessage('User logged in successfully')
         navigate('/', { replace: true })
       } else {
@@ -77,6 +85,9 @@ function Signup () {
         }
         if (json.wrong.includes('email')) {
           setMessage('Invalid e-mail.')
+        }
+        if (json.wrong.includes('exists')) {
+          setMessage('Username is taken.')
         }
       }
     } catch (err) {
@@ -109,6 +120,37 @@ function Signup () {
                 placeholder='Enter username'
                 value={username}
                 onChange={e => setName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className='mb-3' controlId='formBasicFirstName'>
+              <Form.Label className='fs-4'>First name</Form.Label>
+              <Form.Control
+                type='firstname'
+                placeholder='Enter first name'
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className='mb-3' controlId='formBasicLastName'>
+              <Form.Label className='fs-4'>Last name</Form.Label>
+              <Form.Control
+                type='lastname'
+                placeholder='Enter last name'
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group controlId='formAgeSelector'>
+              <Form.Label>Age</Form.Label>
+              <Form.Control
+                type='number'
+                placeholder='Enter age'
+                min='0'
+                max='120'
+                step='1'
+                value={age}
+                onChange={e => setAge(e.target.value)}
               />
             </Form.Group>
 

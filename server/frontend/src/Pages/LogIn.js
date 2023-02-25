@@ -4,35 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { Form, Button } from 'react-bootstrap'
 
 import Home from './Home'
-
-async function getCookie (name) {
-  var value = '; ' + document.cookie
-  var parts = value.split('; ' + name + '=')
-  if (parts.length === 2) return parts.pop().split(';').shift()
-}
-
-async function checkSession () {
-  const sessionID = await getCookie('sessionID')
-  console.log('sessionID', sessionID)
-  if (sessionID !== undefined) {
-    const res = await fetch('http://localhost:8080/check-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        mode: 'cors'
-      },
-      body: JSON.stringify({ sessionID })
-    })
-
-    const data = await res.json()
-    console.log(data.status)
-    if (data.status === 'success') {
-      return true
-    }
-  }
-  return false
-}
-
 const styles = {
   back: {
     backgroundColor: 'white',
@@ -63,6 +34,29 @@ const styles = {
     verticalAlign: 'middle'
   }
 }
+
+async function getCookie (name) {
+  var value = '; ' + document.cookie
+  var parts = value.split('; ' + name + '=')
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+async function checkSession () {
+  const sessionID = await getCookie('sessionID')
+  console.log('sessionID', sessionID)
+  if (sessionID !== undefined) {
+    const res = await fetch('http://localhost:8080/check-session', {
+      method: 'GET'
+    })
+    const data = await res.json()
+    console.log(data.status)
+    if (data.status === 'success') {
+      return true
+    }
+  }
+  return false
+}
+
 function Login () {
   const [username, setName] = useState('')
   const [password, setPassword] = useState('')

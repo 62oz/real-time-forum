@@ -29,41 +29,12 @@ const Article = () => {
   }
 
   const checkSession = async () => {
-    let sessionID = getCookie('sessionID')
-    if (sessionID === undefined) {
-      await fetch('http://localhost:8080/login', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-        .then(response => {
-          if (response.status === 400) {
-            window.location.href = '/bad-request'
-          } else if (response.status === 500) {
-            window.location.href = '/internal-server-error'
-          }
-          return response.json()
-        })
-        .then(data => {
-          if (data.success === true) {
-            setIsLoggedIn(true)
-            sessionStorage.setItem('isLoggedIn', true)
-          }
-        })
-        .catch(error => {
-          // Handle any errors
-          console.error(error)
-        })
-    } else if (sessionID !== undefined) {
+    let sessionID = await getCookie('sessionID')
+    console.log('sessionID', sessionID)
+    if (sessionID !== undefined) {
       const res = await fetch('http://localhost:8080/check-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          mode: 'cors'
-        },
-        body: JSON.stringify({ sessionID })
+        method: 'GET',
+        credentials: 'include'
       })
       if (res.status === 400) {
         window.location.href = '/bad-request'
@@ -71,8 +42,10 @@ const Article = () => {
         window.location.href = '/internal-server-error'
       }
       const data = await res.json()
+      console.log(data.status)
       if (data.status === 'success') {
         setIsLoggedIn(true)
+        sessionStorage.setItem('userInfo', JSON.stringify(data.user))
         sessionStorage.setItem('isLoggedIn', true)
       }
     }
@@ -170,6 +143,8 @@ const Article = () => {
       })
   }, [thisPost, thisPost.comments])
 
+  let date = new Date(thisPost.date * 1000)
+
   return (
     <Row>
       <Col lg={2} md={1} className='d-none d-lg-block d-md-block'></Col>
@@ -179,7 +154,7 @@ const Article = () => {
         <div>
           <h2 className='mb-1'>{thisPost.title}</h2>
           <p className=''>
-            {thisPost.date}by <a href='#'>{thisPost.author}</a>
+            {date.toLocaleDateString()} by <a href='#'>{thisPost.author}</a>
           </p>
 
           <p>{thisPost.content}</p>
