@@ -25,7 +25,7 @@ func InsertMessage(tx *sql.Tx, m u.Message) {
 
 // Get all messages between two users
 func GetMessages(db *sql.DB, SenderID int, ReceiverID int) []u.Message {
-	rows, err := db.Query(`SELECT ID, SenderID, ReceiverID, Content, Date FROM Messages WHERE (SenderID = ? AND ReceiverID = ?) ORDER BY Date DESC;`, SenderID, ReceiverID, ReceiverID, SenderID)
+	rows, err := db.Query(`SELECT ID, SenderID, ReceiverID, Content, Date, is_read FROM Messages WHERE (SenderID = ? AND ReceiverID = ?) ORDER BY Date DESC;`, SenderID, ReceiverID, ReceiverID, SenderID)
 	if err != nil {
 		fmt.Println("Get messages error:", err)
 		return nil
@@ -36,7 +36,7 @@ func GetMessages(db *sql.DB, SenderID int, ReceiverID int) []u.Message {
 
 	for rows.Next() {
 		var m u.Message
-		err = rows.Scan(&m.ID, &m.SenderID, &m.ReceiverID, &m.Content, &m.Date)
+		err = rows.Scan(&m.ID, &m.SenderID, &m.ReceiverID, &m.Content, &m.Date, &m.Read)
 		if err != nil {
 			fmt.Println("Get messages error (Scan):", err)
 			return nil
@@ -49,4 +49,21 @@ func GetMessages(db *sql.DB, SenderID int, ReceiverID int) []u.Message {
 		return nil
 	}
 	return messages
+}
+
+// Mark message as read
+func MarkMessageAsRead(tx *sql.Tx, MessageID int) {
+	statement, err := tx.Prepare(`UPDATE Messages SET is_read = 1 WHERE ID = ?`)
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("Mark message as read Prepare error:", err)
+		return
+	}
+	defer statement.Close()
+	_, err = statement.Exec(MessageID)
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("Mark message as read Exec error:", err)
+		return
+	}
 }

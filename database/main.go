@@ -102,6 +102,15 @@ func GetDB(database string) *sql.DB {
 		log.Fatal(err)
 	}
 
+	// DELETE MESSAGES TABLE
+	/* 	_, err = db.Exec(`
+	   	DROP TABLE Messages;
+	   	`)
+	   	if err != nil {
+	   		fmt.Println("Error deleting messages table.")
+	   		log.Fatal(err)
+	   	} */
+
 	// MESSAGES FEATURE
 
 	_, err = db.Exec(`
@@ -120,5 +129,15 @@ func GetDB(database string) *sql.DB {
 		fmt.Println("Error creating messages table.")
 		log.Fatal(err)
 	}
+
+	// UNCOMMENT IF DATABASE IS RESET
+	/* 	_, err = db.Exec(`
+	   	   	ALTER TABLE Messages ADD COLUMN is_read INTEGER DEFAULT 0;
+	   	   	`)
+	   	if err != nil {
+	   		fmt.Println("Error adding is_read column to messages table.")
+	   		log.Fatal(err)
+	   	} */
+
 	return db
 }

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	d "forum/database"
 	u "forum/server/utils"
 	"log"
@@ -38,10 +37,44 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get messages from db
-	messages := d.GetMessages(Database, message.SenderID, message.ReceiverID)
-	// Add messages received by sender
-	messages = append(messages, d.GetMessages(Database, message.SenderID, message.ReceiverID)...)
+	// Get messages from db that receiver sent to sender
+	messages := d.GetMessages(Database, message.ReceiverID, message.SenderID)
+	// Mark messages as read in db
+	for i, m := range messages {
+		if m.Read == 0 {
+			// Start a new transaction
+			tx, err := Database.Begin()
+			if err != nil {
+				log.Println(err)
+				conn.Close()
+				return
+			}
+
+			// Mark message as read
+			d.MarkMessageAsRead(tx, m.ID)
+			messages[i].Read = 1
+
+			// Commit the transaction
+			err = tx.Commit()
+			if err != nil {
+				log.Println(err)
+				conn.Close()
+				return
+			}
+		}
+
+	}
+
+	// Get messages from db that sender sent to receiver if not the same user
+	if message.SenderID != message.ReceiverID {
+		messages = append(messages, d.GetMessages(Database, message.SenderID, message.ReceiverID)...)
+	}
+
+	// Add sender and receiver names to messages
+	for i, m := range messages {
+		messages[i].Sender = d.GetUserByID(Database, m.SenderID).Username
+		messages[i].Receiver = d.GetUserByID(Database, m.ReceiverID).Username
+	}
 
 	// Send messages to client
 	err = conn.WriteJSON(messages)
@@ -60,8 +93,6 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 			conn.Close()
 			return
 		}
-
-		fmt.Println("received", message)
 
 		// Start a new transaction
 		tx, err := Database.Begin()
@@ -85,8 +116,6 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 		// Update the messages list to send to the client
 		messages = d.GetMessages(Database, message.SenderID, message.ReceiverID)
 
-		fmt.Println(messages)
-
 		// Send the updated messages list to the client
 		err = conn.WriteJSON(messages)
 		if err != nil {
@@ -102,6 +131,12 @@ func GetActiveUsers(w http.ResponseWriter, r *http.Request) {
 	//Clean up
 	DeleteExpiredSessions()
 
+	// Get the current user from client
+	var currentUser u.User
+	if r.Method == "POST" {
+		json.NewDecoder(r.Body).Decode(&currentUser)
+	}
+
 	// Get active active sessions
 	sessions := d.GetAllSessions(Database)
 
@@ -113,6 +148,15 @@ func GetActiveUsers(w http.ResponseWriter, r *http.Request) {
 
 	// Remove duplicates
 	activeUsers = u.RemoveUserDuplicates(activeUsers)
+
+	// Give each active user the number of unread messages
+	for i, user := range activeUsers {
+		for _, m := range d.GetMessages(Database, user.ID, currentUser.ID) {
+			if m.Read == 0 {
+				activeUsers[i].Unread++
+			}
+		}
+	}
 
 	// Send active users list to client
 	json.NewEncoder(w).Encode(activeUsers)
@@ -129,7 +173,6 @@ func DeleteExpiredSessions() {
 	for _, s := range sessions {
 		if d.IsExpired(Database, s) {
 			// Begin new transaction
-			fmt.Println("expired session", s)
 			d.DeleteSession(tx, s.UUID)
 		}
 	}

@@ -18,6 +18,7 @@ type User struct {
 	ReactedPosts    []Post `json:"reactedPosts"`
 	CommmentedPosts []Post `json:"commentedPosts"`
 	CreatedPosts    []Post `json:"createdPosts"`
+	Unread          int    `json:"unread"` //This is the number of messages unread by the other user
 }
 
 // Category :O
@@ -95,6 +96,9 @@ type Message struct {
 	ID         int    `json:"id"`
 	Content    string `json:"message"`
 	SenderID   int    `json:"senderId"`
+	Sender     string `json:"sender"`
 	ReceiverID int    `json:"receiverId"`
+	Receiver   string `json:"receiver"`
 	Date       int64  `json:"date"`
+	Read       int    `json:"isRead"`
 }
