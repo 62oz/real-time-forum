@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
+import '../style.css'
 
 function Chat (props) {
-  const [sender, setSender] = useState(null)
-  const [receiver, setReceiver] = useState(null)
+  const [me, setMe] = useState(null)
+  const [other, setOther] = useState(null)
   const [messages, setMessages] = useState([])
   const [socket, setSocket] = useState(null)
   const [message, setMessage] = useState('')
@@ -32,12 +33,11 @@ function Chat (props) {
     })
   }
   useEffect(() => {
-    let senderBefore = sender
-    let receiverBefore = receiver
+    let meBefore = me
+    let otherBefore = other
     // Get sender and receiver from props
-    setSender(props.currentUser)
-    setReceiver(props.otherUser)
-
+    setMe(props.currentUser)
+    setOther(props.otherUser)
     // Create a new WebSocket connection
     if (socket === null) {
       connectToWebSocket()
@@ -45,10 +45,6 @@ function Chat (props) {
           // Handle messages received from the server
           newSocket.onmessage = event => {
             let msgs = JSON.parse(event.data)
-            /*             if (msgs !== null && msgs.length > 10) {
-              msgs = msgs.slice(msgs.length - 10, msgs.length)
-            } */
-            console.log('msgs', msgs)
             //Reverse order of msgs
             msgs = msgs.reverse()
             setMessages(msgs)
@@ -58,12 +54,14 @@ function Chat (props) {
           setSocket(newSocket)
 
           // Send message after the connection is established
-          if (sender != null && receiver != null) {
+          if (me != null && other != null) {
             console.log('Preliminary message')
             newSocket.send(
               JSON.stringify({
-                senderId: sender.id,
-                receiverId: receiver.id,
+                senderId: me.id,
+                receiverId: other.id,
+                sender: me.username,
+                receiver: other.username,
                 message: ''
               })
             )
@@ -73,10 +71,10 @@ function Chat (props) {
     } else {
       // Handle when sender and receiver are updated
       if (
-        senderBefore != null &&
-        receiverBefore != null &&
-        sender != senderBefore &&
-        receiver != receiverBefore
+        meBefore != null &&
+        otherBefore != null &&
+        me !== meBefore &&
+        other !== otherBefore
       ) {
         // Close the WebSocket connection when the component is unmounted
         return () => {
@@ -85,23 +83,11 @@ function Chat (props) {
         }
       }
     }
-  }, [
-    props.currentUser,
-    props.otherUser,
-    socket,
-    sender,
-    receiver,
-    messages,
-    setMessages
-  ])
+  }, [props.currentUser, props.otherUser, socket, me, other, messages])
 
   useEffect(() => {
-    console.log('messages', messages)
     if (messages !== null && messages.length > 0) {
       setAnyMessages(true)
-      /*       if (messages.length > 10) {
-        setMessages(messages.slice(messages.length - 10, messages.length))
-      } */
     } else {
       setAnyMessages(false)
     }
@@ -112,8 +98,10 @@ function Chat (props) {
     // Send message to server
     socket.send(
       JSON.stringify({
-        senderId: sender.id,
-        receiverId: receiver.id,
+        senderId: me.id,
+        receiverId: other.id,
+        sender: me.username,
+        receiver: other.username,
         message: message,
         date: Date.now()
       })
@@ -123,38 +111,47 @@ function Chat (props) {
       setMessages([])
     }
     setMessages([
-      { senderId: sender.id, receiverId: receiver.id, message: message },
+      {
+        sender: me.username,
+        receiver: other.username,
+        message: message
+      },
       ...messages
     ])
-    /*     if (messages.length > 10) {
-      setMessages(messages.slice(messages.length - 10, messages.length))
-    } */
+
     setMessage('')
   }
 
   return (
     <div>
       <div>
-        <div style={{ height: '200px', overflow: 'scroll' }}>
-          <ul>
+        <div
+          className='chatArea'
+          style={{ height: '200px', overflow: 'scroll' }}
+        >
+          <div>
             {anyMessages ? (
               messages.map((msg, index) => (
-                <li key={index}>
-                  {msg.sender}: {msg.message}
-                </li>
+                <div className='individualMessage' key={index}>
+                  <div className='messageSender'>{msg.sender}:</div>{' '}
+                  <div className='messageContent'>{msg.message}</div>
+                </div>
               ))
             ) : (
               <p>No messages</p>
             )}
-          </ul>
+          </div>
         </div>
         <form onSubmit={handleSendMessage}>
           <input
+            className='chatTextInput'
             type='text'
             value={message}
             onChange={event => setMessage(event.target.value)}
           />
-          <button type='submit'>Send</button>
+          <button className='chatSendButton' type='submit'>
+            Send
+          </button>
         </form>
       </div>
     </div>

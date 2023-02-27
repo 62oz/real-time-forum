@@ -1,0 +1,73 @@
+.chatList {
+    max-height: 400px; /* set a maximum height to allow for scrolling */
+    overflow-y: scroll; /* enable scrolling when content overflows */
+  }
+  
+  .onlineUser {
+    display: block;
+    width: 100%;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    float: left;
+  }
+  
+  .onlineUser:hover {
+    background-color: #f2f2f2;
+  }
+  
+  .onlineUsername {
+    flex-grow: 1;
+  }
+  
+  .unreadMessages {
+    background-color: #ff0000;
+    color: #fff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+  }
+
+  /* CHAT AREA */
+
+  .chatArea {
+  background-color: #f2f2f2;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.individualMessage {
+  margin-bottom: 10px;
+}
+
+.messageSender {
+  font-weight: bold;
+}
+
+.chatTextInput {
+  margin-right: 10px;
+  width: 100px;
+}
+
+.chatSendButton {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chatSendButton:hover {
+  background-color: #3e8e41;
+}

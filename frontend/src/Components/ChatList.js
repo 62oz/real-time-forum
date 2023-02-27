@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Chat from './Chat'
+import '../style.css'
 
 function ChatList () {
   const [activeUsers, setActiveUsers] = useState([])
@@ -10,9 +11,19 @@ function ChatList () {
 
   useEffect(() => {
     fetchActiveUsers()
+    let unreadNotifications = document.getElementsByClassName('unreadMessages')
+    for (let i = 0; i < unreadNotifications.length; i++) {
+      if (unreadNotifications[i].innerHTML === '0') {
+        unreadNotifications[i].style.display = 'none'
+      }
+    }
   }, [activeUsers])
 
   function fetchActiveUsers () {
+    let id = 0
+    if (currentUser) {
+      id = currentUser.id
+    }
     // Send current user to the server then get list of active users
     fetch('http://localhost:8080/get-active-users', {
       method: 'POST',
@@ -20,7 +31,7 @@ function ChatList () {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        id: currentUser.id
+        id: id
       })
     })
       .then(response => response.json())
@@ -47,16 +58,21 @@ function ChatList () {
 
   return (
     <div>
-      <h2>Active Users</h2>
+      <h2>Online</h2>
       {anyoneOnline > 0 ? (
-        <div>
-          <ul>
+        <div className='chatList'>
+          <div>
             {activeUsers.map(user => (
-              <li key={user.id} onClick={() => handleUserSelect(user)}>
-                {user.username} {user.unread}
-              </li>
+              <div
+                className='onlineUser'
+                key={user.id}
+                onClick={() => handleUserSelect(user)}
+              >
+                <div className='onlineUsername'>{user.username}</div>{' '}
+                <div className='unreadMessages'>{user.unread}</div>
+              </div>
             ))}
-          </ul>
+          </div>
           {selectedUser && (
             <Chat currentUser={currentUser} otherUser={selectedUser} />
           )}

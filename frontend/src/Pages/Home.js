@@ -24,6 +24,7 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [activeUser, setActiveUser] = useState({})
   const [switchReactToogle, setSwitchState] = useState(false)
+  const [cookie, setCookie] = useState('')
 
   if (activeUser !== undefined) {
     if (
@@ -69,6 +70,7 @@ const Home = () => {
 
   const checkSession = async () => {
     let sessionID = await getCookie('sessionID')
+    setCookie(sessionID)
     console.log('sessionID', sessionID)
     if (sessionID !== undefined) {
       const res = await fetch('http://localhost:8080/check-session', {
@@ -117,7 +119,7 @@ const Home = () => {
       sessionStorage.setItem('isLoggedIn', false)
       sessionStorage.setItem('userInfo', null)
     }
-  }, [])
+  }, [cookie])
 
   useEffect(() => {
     fetch('http://localhost:8080', {

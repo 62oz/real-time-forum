@@ -116,6 +116,12 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 		// Update the messages list to send to the client
 		messages = d.GetMessages(Database, message.SenderID, message.ReceiverID)
 
+		// Add sender and receiver names to messages
+		for i, m := range messages {
+			messages[i].Sender = d.GetUserByID(Database, m.SenderID).Username
+			messages[i].Receiver = d.GetUserByID(Database, m.ReceiverID).Username
+		}
+
 		// Send the updated messages list to the client
 		err = conn.WriteJSON(messages)
 		if err != nil {
