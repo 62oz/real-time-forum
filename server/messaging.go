@@ -116,6 +116,11 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 		// Update the messages list to send to the client
 		messages = d.GetMessages(Database, message.SenderID, message.ReceiverID)
 
+		// Also get messages from db that receiver sent to sender if not the same user
+		if message.SenderID != message.ReceiverID {
+			messages = append(messages, d.GetMessages(Database, message.ReceiverID, message.SenderID)...)
+		}
+
 		// Add sender and receiver names to messages
 		for i, m := range messages {
 			messages[i].Sender = d.GetUserByID(Database, m.SenderID).Username

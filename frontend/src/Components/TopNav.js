@@ -8,6 +8,13 @@ const BlogHeaderLogo = {
 }
 
 class TopNav extends Component {
+  componentDidUpdate (prevProps) {
+    if (prevProps.isLoggedIn !== this.props.isLoggedIn) {
+      // Rerender the component
+      this.forceUpdate()
+    }
+  }
+
   render () {
     let isLogged = this.props.isLoggedIn
     //console.log('isLogged in topNav: ', isLogged)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import '../style.css'
 
 import {
   Container,
@@ -188,7 +189,7 @@ const Home = () => {
                   </Card.Body>
                 </Card>
               )}
-              <ChatList></ChatList>
+              {/* <ChatList></ChatList> */}
             </Col>
             <Col lg={9} xs={12} md={12}>
               {items ? (
@@ -211,6 +212,7 @@ const Home = () => {
 
         <Col lg={2} md={1} className='d-none d-lg-block d-md-block'></Col>
       </Row>
+      {isLoggedIn ? <ChatList></ChatList> : null}
     </Container>
   )
 }

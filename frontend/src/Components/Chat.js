@@ -7,7 +7,14 @@ function Chat (props) {
   const [messages, setMessages] = useState([])
   const [socket, setSocket] = useState(null)
   const [message, setMessage] = useState('')
+  const [allMessages, setAllMessages] = useState([])
   const [anyMessages, setAnyMessages] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+
+  let initialised = false
+
+  const chatAreaRef = useRef(null)
 
   const connectToWebSocket = async () => {
     return new Promise((resolve, reject) => {
@@ -32,6 +39,7 @@ function Chat (props) {
       }
     })
   }
+
   useEffect(() => {
     let meBefore = me
     let otherBefore = other
@@ -44,10 +52,33 @@ function Chat (props) {
         .then(newSocket => {
           // Handle messages received from the server
           newSocket.onmessage = event => {
-            let msgs = JSON.parse(event.data)
-            //Reverse order of msgs
-            msgs = msgs.reverse()
-            setMessages(msgs)
+            let allmsgs = JSON.parse(event.data)
+            console.log(allmsgs)
+            //sort by date
+            allmsgs.sort((a, b) => {
+              return new Date(a.date) - new Date(b.date)
+            })
+            setAllMessages(allmsgs)
+            // Get top 10 messages
+            let msgs = allmsgs.slice(allmsgs.length - 10, allmsgs.length)
+
+            if (!initialised) {
+              // sort by date
+              msgs.sort((a, b) => {
+                return new Date(a.date) - new Date(b.date)
+              })
+              console.log('initialised')
+              setMessages(msgs)
+              initialised = true
+            } else {
+              console.log('new message')
+              let updatedMessages = [...msgs, ...messages]
+              // sort by date
+              updatedMessages.sort((a, b) => {
+                return new Date(a.date) - new Date(b.date)
+              })
+              setMessages(updatedMessages)
+            }
           }
 
           // Save the socket connection to state
@@ -83,7 +114,7 @@ function Chat (props) {
         }
       }
     }
-  }, [props.currentUser, props.otherUser, socket, me, other, messages])
+  }, [props.currentUser, props.otherUser, socket, me, other])
 
   useEffect(() => {
     if (messages !== null && messages.length > 0) {
@@ -93,8 +124,45 @@ function Chat (props) {
     }
   }, [messages])
 
+  const handleScroll = () => {
+    const chatArea = chatAreaRef.current
+    if (chatArea.scrollTop === 0 && !loading && hasMore) {
+      setLoading(true)
+      // Load more messages
+      const newMessages = allMessages.slice(messages.length)
+
+      let updatedMessages = [...newMessages]
+      // sort by date
+      updatedMessages.sort((a, b) => {
+        return a.date - b.date
+      })
+      // update state
+      setMessages(updatedMessages)
+
+      setLoading(false)
+      if (newMessages.length < 10) {
+        setHasMore(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const chatArea = chatAreaRef.current
+
+    if (chatArea) {
+      chatArea.addEventListener('scroll', handleScroll)
+    }
+
+    return () => {
+      if (chatArea) {
+        chatArea.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [handleScroll])
+
   const handleSendMessage = event => {
     event.preventDefault()
+
     // Send message to server
     socket.send(
       JSON.stringify({
@@ -106,54 +174,49 @@ function Chat (props) {
         date: Date.now()
       })
     )
-    // Update local messages state with new message
-    if (messages == null) {
-      setMessages([])
-    }
-    setMessages([
-      {
-        sender: me.username,
-        receiver: other.username,
-        message: message
-      },
-      ...messages
-    ])
 
     setMessage('')
   }
 
+  useEffect(() => {
+    const chatArea = document.querySelector('.chatArea')
+    chatArea.scrollTop = chatArea.scrollHeight
+  }, [messages])
+
   return (
-    <div>
-      <div>
-        <div
-          className='chatArea'
-          style={{ height: '200px', overflow: 'scroll' }}
-        >
-          <div>
-            {anyMessages ? (
-              messages.map((msg, index) => (
-                <div className='individualMessage' key={index}>
-                  <div className='messageSender'>{msg.sender}:</div>{' '}
-                  <div className='messageContent'>{msg.message}</div>
-                </div>
-              ))
-            ) : (
-              <p>No messages</p>
-            )}
-          </div>
-        </div>
-        <form onSubmit={handleSendMessage}>
-          <input
-            className='chatTextInput'
-            type='text'
-            value={message}
-            onChange={event => setMessage(event.target.value)}
-          />
-          <button className='chatSendButton' type='submit'>
-            Send
-          </button>
-        </form>
+    <div id='personalChatContainer'>
+      <div className='chatArea' ref={chatAreaRef}>
+        {loading && <p>Loading messages...</p>}
+        {anyMessages ? (
+          messages.map((msg, index) => (
+            <div
+              className={`individualMessage ${
+                msg.sender == me.username ? 'sent-message' : 'received-message'
+              }`}
+              key={index}
+            >
+              {' '}
+              <div className='messageContent'>{msg.message}</div>
+            </div>
+          ))
+        ) : (
+          <p>No messages</p>
+        )}
+        {!loading && !hasMore && (
+          <p>You have reached the end of the chat history</p>
+        )}
       </div>
+      <form onSubmit={handleSendMessage} className='sendMessageForm'>
+        <button className='chatSendButton' type='submit'>
+          Send
+        </button>
+        <input
+          className='chatTextInput'
+          type='textArea'
+          value={message}
+          onChange={event => setMessage(event.target.value)}
+        />
+      </form>
     </div>
   )
 }

@@ -1,7 +1,3 @@
-
-doesnt count comments in forntpage
-doesnt show comment author
-single post when theres no comments fix bug
-my commented/liked/created posts to userInfo
-profile privacy reroute prob
-
+filters with empty db
+database tx in gethandlers
+500 error in database errors, import errors

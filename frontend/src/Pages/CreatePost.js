@@ -5,36 +5,6 @@ import Toggles from '../Components/Toggles'
 import TopNav from '../Components/TopNav'
 import Login from './LogIn'
 
-async function getCookie (name) {
-  var value = '; ' + document.cookie
-  var parts = value.split('; ' + name + '=')
-  if (parts.length === 2) return parts.pop().split(';').shift()
-}
-
-async function checkSession () {
-  const sessionID = await getCookie('sessionID')
-  if (sessionID !== undefined) {
-    const res = await fetch('http://localhost:8080/check-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        mode: 'cors'
-      },
-      body: JSON.stringify({ sessionID })
-    })
-    if (res.status === 400) {
-      window.location.href = '/bad-request'
-    } else if (res.status === 500) {
-      window.location.href = '/internal-server-error'
-    }
-    const data = await res.json()
-    if (data.status === 'success') {
-      return true
-    }
-  }
-  return false
-}
-
 function CreatePost () {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -55,6 +25,30 @@ function CreatePost () {
     checkSessionAndNavigate()
   }, [navigate])
   //////////////////////
+
+  const checkSession = async () => {
+    let sessionID = await getCookie('sessionID')
+    console.log('sessionID', sessionID)
+    if (sessionID !== undefined) {
+      const res = await fetch('http://localhost:8080/check-session', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      if (res.status === 400) {
+        window.location.href = '/bad-request'
+      } else if (res.status === 500) {
+        window.location.href = '/internal-server-error'
+      }
+      const data = await res.json()
+      console.log(data.status)
+      if (data.status === 'success') {
+        setIsLoggedIn(true)
+        sessionStorage.setItem('userInfo', JSON.stringify(data.user))
+        sessionStorage.setItem('isLoggedIn', true)
+      }
+    }
+    return isLoggedIn
+  }
 
   function getCookie (name) {
     var value = document.cookie

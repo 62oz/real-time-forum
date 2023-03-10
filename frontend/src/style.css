@@ -1,6 +1,38 @@
-.chatList {
-    max-height: 400px; /* set a maximum height to allow for scrolling */
+.chatContainer {
+    position: fixed;
+  bottom: 0px;
+  width: 50%;
+  min-width: 20%;
+}
+
+#chatList {
+    height: 400px; /* set a maximum height to allow for scrolling */
+    width: 150px;
     overflow-y: scroll; /* enable scrolling when content overflows */
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display:none;
+    float: left;
+    border: 1px solid gray;
+    text-align: center;
+    border-radius: 10px;
+}
+
+
+  .collapsible-button {
+    border-radius: 5px;
+    width: 150px;
+    background-color: #eee;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  .collapsible-button:focus {
+    outline: none;
+  }
+  .collapsible-button.active {
+    background-color: #ccc;
   }
   
   .onlineUser {
@@ -35,24 +67,60 @@
 
   /* CHAT AREA */
 
+  #personalChatContainer {
+    height: 340px;
+    width: 100%;
+  }
+
   .chatArea {
   background-color: #f2f2f2;
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 10px;
+  overflow: scroll;
+  border: 1px solid gray;
+  height: 100%;
 }
 
 .individualMessage {
   margin-bottom: 10px;
 }
 
+.sent-message {
+  background-color: #4CAF50;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  float: right;
+  clear: both;
+}
+
+.received-message {
+  background-color: #fff;
+  color: #000;
+  border-radius: 10px;
+  padding: 10px;
+  float: left;
+  clear: both;
+}
+
 .messageSender {
   font-weight: bold;
 }
 
-.chatTextInput {
-  margin-right: 10px;
-  width: 100px;
+
+.sendMessageForm {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  float: right;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid gray;
+  background-color: #f2f2f2;
+  width: calc(100% - 150px);
+  --sendButton-width: 15%;
+  height: 60px;
 }
 
 .chatSendButton {
@@ -62,12 +130,37 @@
   padding: 5px 10px;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
+  display: block;
   font-size: 16px;
   border-radius: 5px;
   cursor: pointer;
+  float: right;
+  width: 10%;
 }
 
 .chatSendButton:hover {
   background-color: #3e8e41;
+}
+
+.chatTextInput {
+  margin-right: 10px;
+  float: left;
+  border-radius: 5px;
+  border: #000 1px solid;
+  padding: 5px;
+  width: calc(100% - var(--sendButton-width));
+  max-width: calc(100% - 30px);
+}
+
+
+#chatWindow {
+  display: none;
+  height: 300px;
+  float: right;
+  max-width: calc(100% - 150px);
+  width: 100%;
+}
+
+#clear {
+  clear: both;
 }
