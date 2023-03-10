@@ -136,6 +136,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer tx.Commit()
 
 	fmt.Println("signing up")
 	var res SignupResult
@@ -146,11 +147,13 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("received sign up info")
 		err := json.NewDecoder(r.Body).Decode(&LUser)
 		if err != nil {
+			fmt.Println("problem here")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		fmt.Println("received:", LUser.Username)
 	}
+	res.Wrong = make([]string, 0)
 
 	user_exists := d.UserExists(Database, LUser.Username)
 	if user_exists {
@@ -161,7 +164,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	if emailMatch {
 		fmt.Println("Valid email address")
 	} else {
-		fmt.Println("Invalid email address")
+		fmt.Println("Invalid email address: ", LUser.Email)
 		res.Wrong = append(res.Wrong, "email")
 	}
 
@@ -210,7 +213,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			res.Success = true
 		}
 	}
-
+	fmt.Println(res)
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println(err)

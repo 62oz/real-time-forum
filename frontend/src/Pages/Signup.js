@@ -13,7 +13,7 @@ const styles = {
   },
   divCenter: {
     width: 400,
-    height: 400,
+    height: 600,
     backgroundColor: '#fff',
     position: 'absolute',
     left: 0,
@@ -47,18 +47,19 @@ function Signup () {
 
   let handleSignup = async e => {
     e.preventDefault()
+    console.log('clicked')
     try {
       let res = await fetch('http://localhost:8080/signup', {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           username: username,
           email: email,
           password: password,
           mobile: mobileNumber,
-          age: age,
+          age: age.toString(),
           firstName: firstName,
           lastName: lastName
         })
@@ -77,6 +78,7 @@ function Signup () {
         setMessage('User logged in successfully')
         navigate('/', { replace: true })
       } else {
+        console.log(json.wrong)
         if (json.wrong.includes('username')) {
           setMessage(`Username must only include alphanumericals and '_'.`)
         }
@@ -110,6 +112,7 @@ function Signup () {
                 placeholder='Enter email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                required
               />
             </Form.Group>
 
@@ -120,6 +123,7 @@ function Signup () {
                 placeholder='Enter username'
                 value={username}
                 onChange={e => setName(e.target.value)}
+                required
               />
             </Form.Group>
             <Form.Group className='mb-3' controlId='formBasicFirstName'>
@@ -161,6 +165,7 @@ function Signup () {
                 placeholder='Password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                required
               />
             </Form.Group>
             <Form.Text>

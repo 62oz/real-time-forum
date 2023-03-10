@@ -17,6 +17,8 @@ function ChatList () {
     for (let i = 0; i < unreadNotifications.length; i++) {
       if (unreadNotifications[i].innerHTML === '0') {
         unreadNotifications[i].style.display = 'none'
+      } else {
+        unreadNotifications[i].style.display = 'flex'
       }
     }
     if (!anyoneOnline) {
@@ -105,11 +107,8 @@ let tries = 0
 function Elements () {
   let collapsibleButton =
     document.getElementsByClassName('collapsible-button')[0]
-  console.log(collapsibleButton)
   if (collapsibleButton !== null && collapsibleButton !== undefined) {
-    console.log(collapsibleButton)
     collapsibleButton.addEventListener('click', () => {
-      console.log("I'm clicked")
       const content = document.getElementById('chatList')
       collapsibleButton.classList.toggle('active')
       setTimeout(() => {

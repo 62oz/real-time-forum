@@ -53,7 +53,6 @@ function Chat (props) {
           // Handle messages received from the server
           newSocket.onmessage = event => {
             let allmsgs = JSON.parse(event.data)
-            console.log(allmsgs)
             //sort by date
             allmsgs.sort((a, b) => {
               return new Date(a.date) - new Date(b.date)
@@ -67,11 +66,9 @@ function Chat (props) {
               msgs.sort((a, b) => {
                 return new Date(a.date) - new Date(b.date)
               })
-              console.log('initialised')
               setMessages(msgs)
               initialised = true
             } else {
-              console.log('new message')
               let updatedMessages = [...msgs, ...messages]
               // sort by date
               updatedMessages.sort((a, b) => {
@@ -79,6 +76,8 @@ function Chat (props) {
               })
               setMessages(updatedMessages)
             }
+            const chatArea = chatAreaRef.current
+            chatArea.scrollTop = chatArea.scrollHeight
           }
 
           // Save the socket connection to state
@@ -128,21 +127,32 @@ function Chat (props) {
     const chatArea = chatAreaRef.current
     if (chatArea.scrollTop === 0 && !loading && hasMore) {
       setLoading(true)
-      // Load more messages
-      const newMessages = allMessages.slice(messages.length)
+      setTimeout(() => {
+        // Load more messages
+        let newMessages = []
+        let updatedMessages = []
+        if (allMessages.length > messages.length + 10) {
+          newMessages = allMessages.slice(
+            allMessages.length - messages.length - 10,
+            allMessages.length - messages.length
+          )
+          updatedMessages = [...messages, ...newMessages]
+        } else {
+          updatedMessages = allMessages
+        }
+        // sort updated messages by date
+        updatedMessages.sort((a, b) => {
+          return new Date(a.date) - new Date(b.date)
+        })
 
-      let updatedMessages = [...newMessages]
-      // sort by date
-      updatedMessages.sort((a, b) => {
-        return a.date - b.date
-      })
-      // update state
-      setMessages(updatedMessages)
+        // update state
+        setMessages(updatedMessages)
 
-      setLoading(false)
-      if (newMessages.length < 10) {
-        setHasMore(false)
-      }
+        setLoading(false)
+        if (newMessages.length < 10) {
+          setHasMore(false)
+        }
+      }, 500)
     }
   }
 
@@ -179,10 +189,20 @@ function Chat (props) {
   }
 
   useEffect(() => {
-    const chatArea = document.querySelector('.chatArea')
-    chatArea.scrollTop = chatArea.scrollHeight
-  }, [messages])
-
+    const chatArea = chatAreaRef.current
+    if (chatArea) {
+      // Scroll to the bottom of the chat area on initial load
+      chatArea.scrollTop = chatArea.scrollHeight
+      // Add event listener for scrolling
+      chatArea.addEventListener('scroll', handleScroll)
+    }
+    return () => {
+      if (chatArea) {
+        // Remove event listener when component is unmounted
+        chatArea.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [])
   return (
     <div id='personalChatContainer'>
       <div className='chatArea' ref={chatAreaRef}>
